@@ -19,8 +19,9 @@ const OUT_DIR = path.join(__dirname, '..', 'docs', 'screenshots');
 const DATA_DIR = path.join(__dirname, '..', 'docs', 'demo-data');
 
 // 动图参数
-const GIF_WIDTH = 900;      // 缩放后宽度
+const GIF_WIDTH = 1100;     // 缩放后宽度
 const FRAME_DELAY = 500;    // 每帧停留毫秒
+const GIF_COLORS = 256;     // 调色板颜色数（UI 文本建议 256）
 const VIEWPORT = { width: 1440, height: 860 };
 
 const BROWSER_CANDIDATES = [
@@ -35,24 +36,42 @@ function findBrowser() {
   return null;
 }
 
-/** 把 PNG buffer 缩放并转成 GIF 帧数据 */
+/**
+ * 把 PNG buffer 缩放并转成 GIF 帧数据。
+ *
+ * 用盒式均值（box filter）而非最近邻 —— 最近邻会直接丢弃像素，
+ * 文字笔画被砍掉一半后明显发虚；均值缩放相当于超采样，文字边缘平滑得多。
+ */
 function pngToGifFrame(buffer, targetWidth) {
   const png = PNG.sync.read(buffer);
-  const scale = targetWidth / png.width;
+  const scale = png.width / targetWidth;
   const w = targetWidth;
-  const h = Math.round(png.height * scale);
-
-  // 最近邻缩放（够用且快）
+  const h = Math.round(png.height / scale);
   const rgba = new Uint8Array(w * h * 4);
+
   for (let y = 0; y < h; y++) {
-    const sy = Math.min(png.height - 1, Math.floor(y / scale));
+    const sy0 = Math.floor(y * scale);
+    const sy1 = Math.min(png.height, Math.max(sy0 + 1, Math.floor((y + 1) * scale)));
     for (let x = 0; x < w; x++) {
-      const sx = Math.min(png.width - 1, Math.floor(x / scale));
-      const si = (sy * png.width + sx) * 4;
+      const sx0 = Math.floor(x * scale);
+      const sx1 = Math.min(png.width, Math.max(sx0 + 1, Math.floor((x + 1) * scale)));
+
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let sy = sy0; sy < sy1; sy++) {
+        const rowOffset = sy * png.width;
+        for (let sx = sx0; sx < sx1; sx++) {
+          const i = (rowOffset + sx) * 4;
+          r += png.data[i];
+          g += png.data[i + 1];
+          b += png.data[i + 2];
+          n++;
+        }
+      }
+
       const di = (y * w + x) * 4;
-      rgba[di] = png.data[si];
-      rgba[di + 1] = png.data[si + 1];
-      rgba[di + 2] = png.data[si + 2];
+      rgba[di] = r / n;
+      rgba[di + 1] = g / n;
+      rgba[di + 2] = b / n;
       rgba[di + 3] = 255;
     }
   }
@@ -87,7 +106,7 @@ function pngToGifFrame(buffer, targetWidth) {
 
   const context = await browser.newContext({
     viewport: VIEWPORT,
-    deviceScaleFactor: 1, // 动图用 1 倍，控制体积
+    deviceScaleFactor: 2, // 2 倍分辨率渲染，缩图时相当于超采样，文字更锐利
     locale: 'zh-CN',
   });
 
@@ -204,7 +223,7 @@ function pngToGifFrame(buffer, targetWidth) {
   for (let i = 0; i < frames.length; i++) {
     const frame = pngToGifFrame(frames[i], GIF_WIDTH);
     size = { width: frame.width, height: frame.height };
-    const palette = quantize(frame.rgba, 128); // 128 色，控制体积
+    const palette = quantize(frame.rgba, GIF_COLORS);
     const index = applyPalette(frame.rgba, palette);
     gif.writeFrame(index, frame.width, frame.height, { palette, delay: FRAME_DELAY });
   }
