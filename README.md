@@ -14,12 +14,49 @@
 ## 📖 目录
 
 - [功能概览](#-功能概览)
+- [界面预览](#-界面预览)
 - [技术亮点](#-技术亮点)
 - [技术栈](#-技术栈)
 - [快速开始](#-快速开始)
 - [项目结构](#-项目结构)
 - [核心实现](#-核心实现)
 - [部署](#-部署)
+
+---
+
+## 🖼 界面预览
+
+### 财务对账全流程演示
+
+上传流水 / 发票 / 收据 → 自动识别列映射 → 三维匹配 → 结果分类与异常标记：
+
+![财务对账操作演示](docs/screenshots/demo-reconciliation.gif)
+
+> 演示数据在 [`docs/demo-data/`](docs/demo-data/)，可自行下载后按上面流程试跑。
+> 数据刻意设计为覆盖全部场景：4 笔可匹配（含金额差额、名称变体、日期偏移）、
+> 1 笔有流水无发票、1 笔有发票无流水、1 笔用收据匹配。
+
+### 对账结果页
+
+完全匹配 4 ｜ 疑似匹配 1 ｜ 未匹配 2 ｜ 异常 3 ｜ 匹配率 71%
+
+![对账结果](docs/screenshots/08-reconciliation-result.png)
+
+### 工作台
+
+![工作台](docs/screenshots/01-dashboard.png)
+
+### 台账管理
+
+![台账管理](docs/screenshots/02-ledger.png)
+
+### 票据管理
+
+![票据管理](docs/screenshots/03-invoice.png)
+
+### 报表中心
+
+![报表中心](docs/screenshots/05-report.png)
 
 ---
 
@@ -229,9 +266,15 @@ finance-ledger/
 │   │   ├── commands/             # Tauri 命令（账簿/交易/分类/发票/统计）
 │   │   └── main.rs
 │   └── tauri.conf.json
+├── docs/
+│   ├── screenshots/              # 界面截图与操作演示动图
+│   └── demo-data/                # 对账演示数据（Excel）
 ├── scripts/                      # 工具脚本
 │   ├── ocr-recognize.ps1         # Windows OCR 调用脚本 ★
 │   ├── ocr-test.ps1              # OCR 独立测试
+│   ├── generate-demo-data.js     # 生成对账演示数据
+│   ├── capture-screenshots.js    # 自动截取界面截图
+│   ├── capture-demo-gif.js       # 自动录制操作演示动图
 │   └── dev / build / test / lint / clean
 ├── ocr-server.js                 # 本地 OCR 服务（HTTP）★
 ├── simple-server.js              # 静态服务器（托管 dist/）

@@ -117,19 +117,32 @@ export async function previewFile(file: File): Promise<{
 export function guessColumnMapping(columns: string[]): ColumnMapping {
   const lc = columns.map((c) => c.toLowerCase().replace(/\s+/g, ""));
 
+  /**
+   * 按模式顺序查找列名。
+   * 找不到时返回空字符串（而不是退化成第一列）——
+   * 错误地选中日期列当往来单位，比留空让用户自己选危险得多。
+   */
   const find = (...patterns: string[]): string => {
     for (const p of patterns) {
       const idx = lc.findIndex((c) => c.includes(p));
       if (idx >= 0) return columns[idx];
     }
-    return columns[0] || "";
+    return "";
   };
 
   return {
-    date: find("日期", "交易日期", "开票日期", "date", "时间", "记账日期"),
-    amount: find("金额", "价税合计", "合计", "付款金额", "收入金额", "支出金额", "amount", "总额", "小计"),
-    counterparty: find("对方", "往来", "销售方", "购买方", "收款方", "付款方", "户名", "名称", "customer", "vendor", "supplier", "对手"),
-    description: find("摘要", "备注", "说明", "描述", "description", "remark", "用途"),
+    date: find("交易日期", "开票日期", "记账日期", "日期", "date", "时间"),
+    amount: find("价税合计", "付款金额", "收入金额", "支出金额", "交易金额", "金额", "合计", "总额", "小计", "amount"),
+    counterparty: find(
+      // 明确的收付款方
+      "销售方", "购买方", "收款方", "付款方", "收款单位", "付款单位", "对方户名", "对方名称", "对方",
+      // 通用的往来单位叫法
+      "往来单位", "往来", "单位名称", "公司名称", "商户名称", "客户名称",
+      "供应商", "客户", "厂商", "户名", "名称",
+      // 英文
+      "customer", "vendor", "supplier", "counterparty", "payee", "payer"
+    ),
+    description: find("摘要", "备注", "说明", "描述", "用途", "description", "remark", "memo"),
     invoiceNumber: find("发票号码", "发票号", "票据号", "invoice", "号码"),
   };
 }
@@ -325,12 +338,29 @@ function buildCandidate(
     amountDiff,
     dateDiff,
     counterpartySim: sim,
-    score: amountScore + dateScore + simScore,
+    score: Math.round(amountScore + dateScore + simScore),
   };
 }
 
-function classifyMatchType(score: number, config: MatchConfig): MatchType {
-  if (score >= 85) return "exact";
+/**
+ * 判定匹配类型
+ *
+ * 「完全匹配」必须三项硬指标全部达标：金额在容差内 + 日期在容差内 + 名称相似度达标。
+ * 仅凭得分高是不够的 —— 否则「金额差 40 元」也会因为日期和名称都满分而被判成完全匹配，
+ * 这在财务对账场景下是严重误导。
+ */
+function classifyMatchType(
+  score: number,
+  amountDiff: number,
+  dateDiff: number,
+  similarity: number,
+  config: MatchConfig
+): MatchType {
+  const amountOk = amountDiff <= config.amountTolerance;
+  const dateOk = dateDiff <= config.dateToleranceDays;
+  const nameOk = similarity >= config.similarityThreshold;
+
+  if (amountOk && dateOk && nameOk) return "exact";
   if (score >= config.suspectedThreshold) return "suspected";
   return "unmatched";
 }
@@ -378,7 +408,13 @@ export function performReconciliation(
 
     if (bestMatch && bestMatch.score >= config.suspectedThreshold) {
       usedInvoices.add(bestIdx);
-      const matchType = classifyMatchType(bestMatch.score, config);
+      const matchType = classifyMatchType(
+        bestMatch.score,
+        bestMatch.amountDiff,
+        bestMatch.dateDiff,
+        bestMatch.counterpartySim,
+        config
+      );
       const matchAnomalies: Anomaly[] = [];
 
       // 金额不一致
@@ -449,7 +485,13 @@ export function performReconciliation(
 
     if (bestMatch && bestMatch.score >= config.suspectedThreshold) {
       usedReceipts.add(bestIdx);
-      const matchType = classifyMatchType(bestMatch.score, config);
+      const matchType = classifyMatchType(
+        bestMatch.score,
+        bestMatch.amountDiff,
+        bestMatch.dateDiff,
+        bestMatch.counterpartySim,
+        config
+      );
       const matchAnomalies: Anomaly[] = [];
 
       if (bestMatch.amountDiff > config.amountTolerance) {

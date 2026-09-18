@@ -126,6 +126,26 @@ const Reconciliation = () => {
       return;
     }
 
+    // 校验必填列映射：缺失时明确报错，避免用错误的列静默算出错误结果
+    const missing: string[] = [];
+    const check = (slot: FileSlot, label: string) => {
+      if (!slot.file) return;
+      const lack: string[] = [];
+      if (!slot.mapping.date) lack.push("日期");
+      if (!slot.mapping.amount) lack.push("金额");
+      if (!slot.mapping.counterparty) lack.push("往来单位");
+      if (lack.length) missing.push(`${label}：${lack.join("、")}`);
+    };
+    check(txnSlot, "付款流水");
+    check(invSlot, "发票");
+    check(rcpSlot, "收据");
+
+    if (missing.length) {
+      message.error(`请先指定以下列映射 — ${missing.join("；")}`);
+      setStep(1);
+      return;
+    }
+
     setMatching(true);
     try {
       const txnRows = await parseFile(txnSlot.file);
