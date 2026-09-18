@@ -1,0 +1,87 @@
+// 整体：左右两栏各占一列，高度锁定视口，避免出现整页滚动
+.layout {
+  height: 100vh;
+  overflow: hidden;
+}
+
+// 左侧边栏：作为 flex 子项参与布局（不再绝对定位，因此不会盖住内容）
+.sider {
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex: 0 0 auto;
+  z-index: 10;
+}
+
+.logo {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+
+// 右侧主区域：顶部栏固定，内容区独立滚动
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0; // 关键：允许内部宽表格收缩，否则会撑破布局
+  overflow: hidden;
+}
+
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  line-height: normal;
+  padding: 0 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: 16px;
+  color: var(--text-secondary);
+}
+
+// 内容区：自身滚动（纵向 + 横向），宽表格不会溢出到侧边栏
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 24px 24px;
+  overflow: auto;
+  background: var(--background-color);
+}
+
+@media (max-width: 992px) {
+  .header {
+    padding: 0 16px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+}

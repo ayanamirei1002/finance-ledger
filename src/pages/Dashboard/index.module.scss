@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.recentTransactions {
+  margin-top: 16px;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .container {
+    gap: 12px;
+  }
+}

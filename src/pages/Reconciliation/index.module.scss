@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.steps {
+  margin-bottom: 8px;
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// 列映射卡片
+.ant-select {
+  min-width: 120px;
+}
+
+// 响应式
+@media (max-width: 768px) {
+  .stepContent {
+    gap: 12px;
+  }
+}

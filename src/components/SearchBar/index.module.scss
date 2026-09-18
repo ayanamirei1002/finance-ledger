@@ -1,0 +1,13 @@
+.container {
+  padding: 16px;
+  background: var(--card-background);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .container {
+    padding: 12px;
+  }
+}

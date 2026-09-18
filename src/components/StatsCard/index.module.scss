@@ -1,0 +1,33 @@
+.card {
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.icon {
+  font-size: 24px;
+  color: var(--text-tertiary);
+}
+
+.footer {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.trendUp {
+  color: var(--success-color);
+}
+
+.trendDown {
+  color: var(--error-color);
+}

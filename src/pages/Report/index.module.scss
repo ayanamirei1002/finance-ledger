@@ -1,0 +1,24 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filterCard {
+  margin-bottom: 16px;
+}
+
+.chart {
+  height: 400px;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .container {
+    gap: 12px;
+  }
+
+  .chart {
+    height: 300px;
+  }
+}

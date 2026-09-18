@@ -1,0 +1,11 @@
+allowBuilds:
+  # 原生二进制由 @esbuild/win32-x64 包直接提供，无需运行 postinstall 校验
+  esbuild: false
+  # 需要编译原生模块，必须允许
+  '@parcel/watcher': true
+
+# 允许安装刚发布不久的新包（关闭「最小发布年龄」校验）
+minimumReleaseAge: 0
+
+strictPeerDependencies: false
+autoInstallPeers: true

@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filterCard {
+  margin-bottom: 16px;
+}
+
+// OCR 识别原文展示
+.ocrText {
+  max-height: 320px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  font-family: Consolas, Monaco, "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .container {
+    gap: 12px;
+  }
+}
