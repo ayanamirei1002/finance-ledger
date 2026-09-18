@@ -4,8 +4,10 @@
 
 **核心特点：数据不出本机 · OCR 零 API 成本 · 开箱即用**
 
-<!-- 部署到 Vercel 后把下面这行的占位符替换成你的链接 -->
-<!-- 🔗 在线 Demo：https://your-project.vercel.app -->
+🔗 **在线 Demo**：<https://finance-ledger-tau.vercel.app>
+
+> ⚠️ 受 `*.vercel.app` 域名 DNS 污染影响，国内网络访问该链接需要代理。
+> 如需国内直连体验，可将自定义域名绑定到 Vercel（服务器 IP 在国内可直连，实测 74ms）。
 
 ---
 
