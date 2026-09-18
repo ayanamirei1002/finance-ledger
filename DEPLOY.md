@@ -97,7 +97,65 @@ pnpm tauri build
 - [x] `vercel.json` — SPA 路由回退
 - [x] `vite.config.ts` — 代码分割（antd/charts/xlsx 独立 chunk）
 - [x] `.gitignore` — 排除 node_modules、dist、.env
-- [ ] 推送到 GitHub
-- [ ] 在 Vercel 导入并部署
-- [ ] 获取在线 Demo 链接
-- [ ] 写进简历
+- [x] 推送到 GitHub
+- [x] 在 Vercel 导入并部署
+- [x] 官网链接自动显示在 GitHub 仓库 About 区
+
+---
+
+## 国内网络访问说明
+
+### 现象
+
+`*.vercel.app` 域名在国内**无法直连**，但 Vercel 的服务器 IP 本身是可达的。
+
+### 实测数据
+
+| 目标 | 直连结果 |
+|------|---------|
+| `finance-ledger-tau.vercel.app`（本机 DNS 解析 → `184.72.1.148`） | ❌ 超时 |
+| `216.198.79.195`（Cloudflare DoH 查到的真实 IP） | ✅ 通，76ms |
+| `64.29.17.195`（真实 IP 2） | ✅ 通，80ms |
+| `76.76.21.21`（Vercel 经典 anycast IP） | ✅ 通，74ms |
+| `vercel.com` | ✅ 通，288ms |
+
+**结论：这是 `*.vercel.app` 的 DNS 污染，不是 IP 层封锁。**
+
+### 解决方案
+
+| 方案 | 成本 | 效果 |
+|------|------|------|
+| 直接用 `.vercel.app` 链接 | 免费 | 访问者需要代理 |
+| **绑定自有域名**（推荐） | 约 ¥30/年 | 国内直连可访问，无需代理 |
+| 部署到国内静态托管 | 视平台而定 | 国内访问最快，但需备案（用国内服务器时） |
+
+绑定自有域名的步骤（域名指向境外服务器，**无需 ICP 备案**）：
+
+1. 在阿里云 / 腾讯云购买域名（`.top` / `.xyz` 约 ¥30/年）
+2. Vercel 项目 → **Settings → Domains** → 输入你的域名 → Add
+3. 到域名注册商的 DNS 解析页添加记录（Vercel 会给出确切值）：
+   - `A` 记录：`@` → `76.76.21.21`
+   - `CNAME` 记录：`www` → `cname.vercel-dns.com`
+4. 等待 DNS 生效（几分钟到几小时），Vercel 会自动签发 SSL 证书
+
+### 本地验证部署
+
+```bash
+node scripts/verify-deploy.js          # 检查线上站点与资源是否正常
+```
+
+### 推送时遇到网络问题
+
+若 `git push` 报 `Failed to connect to github.com:443`，说明 GitHub 被间歇性阻断，可通过代理推送：
+
+```bash
+git config --local http.proxy http://127.0.0.1:7897
+git config --local https.proxy http://127.0.0.1:7897
+git config --local http.sslBackend openssl
+git push
+```
+
+> 注意：`http.sslBackend` 必须设为 `openssl`。Git for Windows 默认的 `schannel` 后端
+> 无法穿透 HTTP 代理隧道，会报 `schannel: failed to receive handshake`。
+
+> 另外 `-c` 参数必须写在子命令**之前**：`git -c key=value push`（写成 `git push -c key=value` 会打印帮助信息）。
